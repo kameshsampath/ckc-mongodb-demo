@@ -1,0 +1,15 @@
+---
+
+namespace: kafka
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+secretGenerator:
+  - name: mongodb-connection-props
+    files:
+      - mongodb-connection.properties
+
+resources:
+ - kafka-connect.yaml
+ - mongodb-connector.yaml

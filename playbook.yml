@@ -1,0 +1,43 @@
+---
+- hosts: localhost
+  connection: local
+  vars:
+    ansible_python_interpreter: '{{ ansible_playbook_python }}'
+    ckc_version: "0.5.0"
+    plugins_dir: /tmp/ckc-connectors
+    plugins_unpack_dir: "{{ plugins_dir }}/plugins"
+    connector_base_url: https://repo1.maven.org/maven2/org/apache/camel/kafkaconnector
+    plugins:
+        - name: "camel-avro-kafka-connector-{{ ckc_version }}"
+          url: "{{ connector_base_url }}/camel-avro-kafka-connector/{{ ckc_version }}/camel-avro-kafka-connector-{{ ckc_version }}-package.tar.gz"
+        - name: "camel-mongodb-kafka-connector-{{ ckc_version }}"
+          url: "{{ connector_base_url }}/camel-mongodb-kafka-connector/{{ ckc_version }}/camel-mongodb-kafka-connector-{{ ckc_version }}-package.tar.gz"
+        - name: "camel-sjms2-kafka-connector-{{ ckc_version }}"
+          url: "{{ connector_base_url }}/camel-sjms2-kafka-connector/{{ ckc_version }}/camel-sjms2-kafka-connector-{{ ckc_version }}-package.tar.gz"
+        - name: "camel-log-kafka-connector-{{ ckc_version }}"
+          url: "{{ connector_base_url }}/camel-log-kafka-connector/{{ ckc_version }}/camel-log-kafka-connector-{{ ckc_version }}-package.tar.gz"
+  tasks:
+    - name: Make directories 
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+         - "{{ plugins_dir }}"
+         - "{{ plugins_unpack_dir }}"
+
+    - name: Download plugins
+      get_url:
+        url: "{{ item.url }}"
+        dest: "{{ plugins_dir }}/{{ item.name }}"
+      with_items: "{{ plugins }}"
+      loop_control:
+        label: "{{item.name}}"
+
+    - name: Extract Plugins
+      unarchive:
+        src:  "{{ plugins_dir }}/{{ item.name }}" 
+        dest: "{{ plugins_unpack_dir }}"
+      with_items: "{{ plugins }}"
+      loop_control:
+        label: "{{item.name}}"
+

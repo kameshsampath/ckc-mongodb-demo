@@ -1,0 +1,38 @@
+---
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaConnect
+metadata:
+  name: my-cluster-connect
+  annotations:
+    # enable connect operator
+    strimzi.io/use-connector-resources: "true"
+spec:
+  replicas: 1
+  version: 2.5.0
+  image: quay.io/kameshsampath/ckc
+  imagePullPolicy: IfNotPresent 
+  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  resources:
+    requests:
+      memory: "1Gi"
+    limits:
+      memory: "1Gi"
+  jvmOptions:
+    gcLoggingEnabled: false
+  config:
+    group.id: my-connect
+    key.converter: org.apache.kafka.connect.storage.StringConverter
+    value.converter: org.apache.kafka.connect.storage.StringConverter
+    offset.storage.topic: my-connect-offsets
+    config.storage.topic: my-connect-configs
+    status.storage.topic: my-connect-status
+    # single node setup
+    config.storage.replication.factor: 1
+    offset.storage.replication.factor: 1
+    status.storage.replication.factor: 1
+  # load the mongodb secret
+  externalConfiguration:
+    volumes:
+      - name: mongodb-connection-props
+        secret:
+          secretName: mongodb-connection-props
